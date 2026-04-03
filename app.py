@@ -6,87 +6,99 @@ from datetime import datetime
 
 # --- CONFIG ---
 st.set_page_config(
-    page_title="Trader Dashboard", 
-    page_icon="💰", 
+    page_title="Trader Pro", 
+    page_icon="📈", 
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# --- THEME FIX & SOFT UI STYLING ---
+# --- THEME: MODERN BOLD & SOFT UI ---
 st.markdown("""
     <style>
-    /* 1. FORCEER ACHTERGROND (Niet meer transparant) */
+    /* 1. Global Reset */
     .stApp {
-        background-color: #F8F9FB !important;
+        background: #F4F7FB !important;
     }
 
-    /* 2. FORCEER TEKSTKLEUR (Overal donkergrijs/zwart) */
-    html, body, [data-testid="stWidgetLabel"], h1, h2, h3, p, span, label, .stMarkdown {
-        color: #1A1A1A !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* 2. Typography & Colors */
+    h1, h2, h3, p, span, label, .stMarkdown {
+        color: #1E293B !important;
+        font-family: 'Inter', -apple-system, sans-serif;
     }
     
-    /* 3. VERBETERDE METRICS (Wit blok met schaduw) */
-    [data-testid="stMetric"] {
-        background-color: #FFFFFF !important;
-        border-radius: 20px !important;
-        padding: 15px !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
-        border: 1px solid #E5E7EB !important;
+    /* 3. The "Hero" Card (Total Balance) */
+    div[data-testid="stMetric"] {
+        background: #FFFFFF !important;
+        border-radius: 24px !important;
+        padding: 20px !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.03) !important;
+        border: 1px solid rgba(226, 232, 240, 0.8) !important;
     }
     
-    /* Metric Labels (Oranje) */
+    /* Metric Labels (Blue Accent) */
     [data-testid="stMetricLabel"] > div {
-        color: #FF7A59 !important;
+        color: #3B82F6 !important; /* Electric Blue */
         font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 11px !important;
     }
     
-    /* Metric Waarden (Zwart) */
     [data-testid="stMetricValue"] > div {
-        color: #1A1A1A !important;
+        color: #0F172A !important;
         font-weight: 800 !important;
+        font-size: 32px !important;
     }
 
-    /* 4. TABELLEN FIX (Geen zwarte achtergrond meer) */
-    .stDataFrame, div[data-testid="stTable"], .stTabs {
-        background-color: #FFFFFF !important;
-        border-radius: 15px !important;
-        border: 1px solid #E5E7EB !important;
-        color: #1A1A1A !important;
+    /* 4. Inputs & Buttons (Modern Accent) */
+    div[data-testid="stExpander"] {
+        background: #FFFFFF !important;
+        border-radius: 20px !important;
+        border: 1px solid #E2E8F0 !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
     }
     
-    /* Tabel Headers tekstkleur */
-    [data-testid="stHeader"] {
-        background-color: #F8F9FB !important;
-    }
-
-    /* 5. INPUTS & BUTTONS */
-    div[data-testid="stExpander"] {
-        background-color: #FFFFFF !important;
-        border-radius: 15px !important;
-        border: 1px solid #E5E7EB !important;
-    }
     .stButton>button {
-        background-color: #FF7A59 !important;
+        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
         color: white !important;
         border: none !important;
         font-weight: 700 !important;
-        border-radius: 12px !important;
+        border-radius: 14px !important;
+        padding: 12px !important;
+        transition: all 0.3s ease !important;
+    }
+    .stButton>button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
-    /* 6. MOBILE FIXES */
+    /* 5. Tables & Tabs (Clean White) */
+    .stDataFrame, .stTabs [data-baseweb="tab-list"] {
+        background: #FFFFFF !important;
+        border-radius: 16px !important;
+        border: 1px solid #E2E8F0 !important;
+    }
+    
+    /* Mobile Layout Fix */
     .block-container {
         max-width: 500px !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-top: 2rem !important;
     }
+    
+    /* Status Dots */
+    .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- HEADER ---
-st.markdown('<div><h1 style="margin-bottom:0px;">Hello Trader!</h1><p style="color:#6E6E73 !important;">Let’s grow your portfolio.</p></div>', unsafe_allow_html=True)
+st.markdown("""
+    <div style="margin-bottom: 30px;">
+        <h1 style="font-size: 32px; letter-spacing: -1px;">Hello Trader! 🚀</h1>
+        <p style="color: #64748B !important; font-size: 16px;">Track your daily progress and hit your goals.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# --- DATA ---
+# --- DATA CONNECTION ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1f4yGEAE7WZRSl2RP9IqSLy0iYPw7PhMyjXjFS7cjcdE/edit?usp=sharing"
 
@@ -103,65 +115,71 @@ def get_data():
 
 df = get_data()
 
-# --- ADD TRADE ---
-with st.expander("➕ Add Trade"):
-    datum_in = st.date_input("Datum", value=datetime.now())
-    bedrag_in = st.number_input("Bedrag (€)", step=1.0)
-    if st.button("Save"):
-        new_row = pd.DataFrame([{"Datum": str(datum_in), "Winst": bedrag_in}])
-        # Filter de cumulatieve kolom weg voordat we concat doen
-        current_data = df.drop(columns=['Cumulatief'], errors='ignore') if not df.empty else df
-        updated_df = pd.concat([current_data, new_row], ignore_index=True)
-        conn.update(spreadsheet=SHEET_URL, data=updated_df)
-        st.success("Success!")
+# --- INPUT SECTION ---
+with st.expander("➕ Log Today's Result"):
+    d_in = st.date_input("Select Date", value=datetime.now())
+    a_in = st.number_input("Amount (€)", step=1.0)
+    if st.button("Save to Cloud"):
+        new_entry = pd.DataFrame([{"Datum": str(d_in), "Winst": a_in}])
+        # Clean current data before concat
+        clean_df = df.drop(columns=['Cumulatief'], errors='ignore') if not df.empty else df
+        updated = pd.concat([clean_df, new_entry], ignore_index=True)
+        conn.update(spreadsheet=SHEET_URL, data=updated)
+        st.balloons()
         st.rerun()
 
 st.write("")
 
-# --- DASHBOARD ---
+# --- KEY METRICS ---
 if not df.empty:
-    st.markdown("### Key Metrics")
-    st.metric(label="Total Balance", value=f"€ {df['Winst'].sum():,.2f}")
+    st.markdown("### <span style='font-size:18px;'>Overview</span>", unsafe_allow_html=True)
     
+    total = df['Winst'].sum()
+    st.metric(label="Net Profit", value=f"€ {total:,.2f}")
+    
+    st.write("")
     c1, c2 = st.columns(2)
     with c1:
         st.metric(label="Total Days", value=len(df))
-        st.metric(label="Max Day", value=f"€ {df['Winst'].max():.0f}")
+        st.metric(label="Best Day", value=f"€ {df['Winst'].max():.0f}")
     with c2:
         st.metric(label="Avg / Day", value=f"€ {df['Winst'].mean():.2f}")
-        st.metric(label="Min Day", value=f"€ {df['Winst'].min():.0f}")
+        st.metric(label="Drawdown (Max Loss)", value=f"€ {df['Winst'].min():.0f}")
 
-    # PERFORMANCE CHART
+    # PERFORMANCE GRAPH (High Contrast)
     st.write("")
-    st.markdown("### Performance")
+    st.markdown("### Performance Curve")
     fig = go.Figure(go.Scatter(
         x=df['Datum'], y=df['Cumulatief'], 
         mode='lines+text', 
-        line=dict(color='#FF7A59', width=4, shape='spline'), 
+        line=dict(color='#3B82F6', width=5, shape='spline'), 
         fill='tozeroy', 
-        fillcolor='rgba(255, 122, 89, 0.05)',
+        fillcolor='rgba(59, 130, 246, 0.08)',
         text=[f"€{x:.0f}" for x in df['Cumulatief']],
+        textfont=dict(color='#1E293B', size=11),
         textposition="top center"
     ))
     fig.update_layout(
-        margin=dict(l=0, r=0, t=30, b=0), height=200, 
+        margin=dict(l=0, r=0, t=40, b=0), height=250, 
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', 
-        xaxis=dict(showgrid=False, tickfont=dict(color='#86868B')), 
-        yaxis=dict(showgrid=False, showticklabels=False, range=[df['Cumulatief'].min()*0.8, df['Cumulatief'].max()*1.3])
+        xaxis=dict(showgrid=False, tickfont=dict(color='#94A3B8')), 
+        yaxis=dict(showgrid=False, showticklabels=False, range=[df['Cumulatief'].min()*0.7, df['Cumulatief'].max()*1.4])
     )
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-    # TABS
+    # TABS (Daily & Weekly)
     st.write("")
-    t1, t2 = st.tabs(["📅 Daily", "📊 Weekly"])
+    t1, t2 = st.tabs(["📅 Daily Logs", "📊 Weekly Stats"])
     with t1:
+        # Color conditional formatting for the table
         d_df = df.sort_values('Datum', ascending=False).copy()
-        d_df['Date'] = d_df['Datum'].dt.strftime('%a, %d %b')
-        st.dataframe(d_df[['Date', 'Winst']], use_container_width=True, hide_index=True)
+        d_df['Date'] = d_df['Datum'].dt.strftime('%d %b %Y')
+        st.dataframe(d_df[['Date', 'Winst']].style.format({'Winst': '€ {:.2f}'}), use_container_width=True, hide_index=True)
+        
     with t2:
         df['Week'] = df['Datum'].dt.isocalendar().week
         w_df = df.groupby('Week')['Winst'].sum().reset_index()
-        st.dataframe(w_df, use_container_width=True, hide_index=True)
+        st.dataframe(w_df.style.format({'Winst': '€ {:.2f}'}), use_container_width=True, hide_index=True)
 
 else:
-    st.info("Voeg je eerste data toe!")
+    st.info("Your dashboard is waiting for data. Log your first trade above!")
